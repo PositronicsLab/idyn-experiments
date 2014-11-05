@@ -1,28 +1,48 @@
-function [] = compare_js_err(test_name,exp_path,start_iter,end_iter,num_tests)
+function [] = compare_js_err(test_name,exp_path,start_iter,end_iter,tests)
     % start_iter =1000;
     % end_iter = 60000;
-    c = ['k';'b';'r';'m';'g';'y';'c'];
+    c = ['k';'b';'r';'g';'c';'m';'y'];
+        num_tests = numel(tests)
     %% COM 
     %{
     figure;
     for i = 1:num_tests
         hold on;
-        data_path = [exp_path,'/',test_name,'/',num2str(i-1),'/']
+        data_path = [exp_path,'/',test_name,'/',num2str(tests(i)),'/']
         x = dlmread([data_path,'com.mat'],' ');
 %         % plot3(x(:,1),x(:,2),x(:,3),c(i,:))
         plot(x(start_iter:end_iter,1),x(start_iter:end_iter,2),c(i,:))
-        axis tight;
+        axis equal;
     end
-    legend('this work','pid','idyn (sensed cfs)')
+%     legend('this work','pid','idyn (sensed cfs)','idyn (delayed sensed cfs)')
 %     view([0,90])
     ylabel('y [m]')
     xlabel('x [m]')   
     %}
-    %% Q err & Qd err     %{
+     %% t vs. nc 
+     %{
     figure;
     for i = 1:num_tests
-        data_path = [exp_path,'/',test_name,'/',num2str(i-1),'/']
-        subplot(3,1,1)
+        data_path = [exp_path,'/',test_name,'/',num2str(tests(i)),'/']
+        x = dlmread([data_path,'nc.mat'],' ');
+        y = dlmread([data_path,'t_idyn.mat'],' ');
+        for nc = 1:4
+            hold on;
+    %         % plot3(x(:,1),x(:,2),x(:,3),c(i,:))
+            hist(log10(y(x==nc)),[-3:0.25:3]);
+            h = findobj(gca,'Type','patch');
+            set(h,'FaceColor',c(i),'EdgeColor','w')
+            axis tight;
+        end
+    end
+%     legend('this work','pid','idyn (sensed cfs)','idyn (delayed sensed cfs)')
+    xlabel('time [log10(ms)]')   
+    %}
+    %% Q err & Qd err  %{
+    figure;
+    for i = 1:num_tests
+        data_path = [exp_path,'/',test_name,'/',num2str(tests(i)),'/']
+        subplot(2,1,1)
                 hold on;
         q = dlmread([data_path,'q.mat'],' ');
         q_des = dlmread([data_path,'q_des.mat'],' ');
@@ -34,7 +54,7 @@ function [] = compare_js_err(test_name,exp_path,start_iter,end_iter,num_tests)
         ylabel('q error: SSE(q_des - q)')
         axis tight;
 
-        subplot(3,1,2)
+        subplot(2,1,2)
                 hold on;
         qd = dlmread([data_path,'qd.mat'],' ');
         qd_des = dlmread([data_path,'qd_des.mat'],' ');
@@ -45,26 +65,35 @@ function [] = compare_js_err(test_name,exp_path,start_iter,end_iter,num_tests)
         xlabel('iteration (0.001 sec)')
         ylabel('qd error: SSE(qd_des - qd)')
                 axis tight;
+    end
+    %}
+    %% U 
+    %{
+%     figure;
+    for i = 1:num_tests
+        data_path = [exp_path,'/',test_name,'/',num2str(tests(i)),'/']
 
-        subplot(3,1,3)
-                hold on;
+%                 hold on;
         u = dlmread([data_path,'u.mat'],' ');
-        ufb = dlmread([data_path,'ufb.mat'],' ');
-        uff = dlmread([data_path,'uff.mat'],' ');
-        qdd_des = dlmread([data_path,'qdd_des.mat'],' ');
-        plot(u(:,8),c(i))
+%         ufb = dlmread([data_path,'ufb.mat'],' ');
+%         uff = dlmread([data_path,'uff.mat'],' ');
+%         qdd_des = dlmread([data_path,'qdd_des.mat'],' ');
+%         hist(sqrt((u(start_iter:end_iter-1,8)-u(start_iter+1:end_iter,8)).^2))
 %         plot(uff(:,8),'r')
 %         plot(ufb(:,8),'b')
 %         plot(qdd_des(:,8)./1000,'c')
         u_norm = mean(sum(u(:,:).^2')')
-        axis tight;
+%         title('dTorque')
+%         xlabel('iteration (0.001 sec)')
+%         ylabel('dTorque')
+%         axis tight;
     end
     %}
     %% RPY 
     %{
     figure;
     for i = 1:num_tests
-        data_path = [exp_path,'/',test_name,'/',num2str(i-1),'/']
+        data_path = [exp_path,'/',test_name,'/',num2str(tests(i)),'/']
         rpy = dlmread([data_path,'rpy.mat'],' ');
         subplot(2,1,1)
         hold on;
@@ -88,7 +117,7 @@ function [] = compare_js_err(test_name,exp_path,start_iter,end_iter,num_tests)
     %{
      figure;
     for i = 1:num_tests
-        data_path = [exp_path,'/',test_name,'/',num2str(i-1),'/']
+        data_path = [exp_path,'/',test_name,'/',num2str(tests(i)),'/']
         xd = dlmread([data_path,'comxd.mat'],' ');
         subplot(2,1,1)
         hold on;
